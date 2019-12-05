@@ -1,0 +1,32 @@
+{
+	"name": "chat",
+	"version": "1.0.0",
+	"description": "",
+	"main": "index.js",
+	"scripts": {
+		"start": "ts-node server.ts"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"devDependencies": {
+		"@types/node": "12.12.14",
+		"@types/parcel-bundler": "1.12.1",
+		"@types/react": "16.9.14",
+		"@types/react-dom": "16.9.4",
+		"@types/socket.io": "2.1.4",
+		"@types/socket.io-client": "1.4.32",
+		"parcel-bundler": "1.12.4",
+		"sass": "^1.23.7",
+		"tslint-config-prettier": "1.18.0",
+		"tslint-plugin-prettier": "2.0.1",
+		"typescript": "3.7.3"
+	},
+	"dependencies": {
+		"express": "4.17.1",
+		"react": "16.12.0",
+		"react-dom": "16.12.0",
+		"socket.io": "2.3.0",
+		"ts-node": "8.5.4"
+	}
+}
