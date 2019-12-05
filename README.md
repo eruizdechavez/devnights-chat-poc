@@ -18,9 +18,10 @@ npm start
 ## To Do
 
 - [x] MVP: Chat con Socket.io 🎉
-- [ ] Auth0 🔐
-- [ ] Cambiar nick ✏️
-- [ ] Log out 🚪
+- [x] Auth0 🔐
+- [x] Cambiar nick ✏️
+- [x] Log out 🚪
+- [x] Deploy de prueba 🚢
 - [ ] Estilos 🎨
 - [ ] Cargar historial 🗄
 - [ ] Exportar historial 📦
