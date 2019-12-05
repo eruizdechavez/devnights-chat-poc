@@ -39,6 +39,8 @@ body,
 	margin-top: 5px;
 
 	&__nick {
+		font-weight: 600;
+
 		&::before {
 			content: '<';
 		}
@@ -68,20 +70,9 @@ body,
 
 	text-align: center;
 
-	&__span,
-	&__input {
+	&__span {
 		margin: 0 5px;
 		font-size: 2em;
 		font-weight: bold;
-	}
-
-	&__input {
-		border: none;
-		border-bottom: 1px solid black;
-		text-align: center;
-
-		&:focus {
-			outline: 1px dashed lightgray;
-		}
 	}
 }

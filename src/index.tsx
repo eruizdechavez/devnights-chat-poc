@@ -1,46 +1,100 @@
+import createAuth0Client from '@auth0/auth0-spa-js';
+import Auth0Client from '@auth0/auth0-spa-js/dist/typings/Auth0Client';
 import React, { Component } from 'react';
 import { render } from 'react-dom';
 import io from 'socket.io-client';
+import { auth0Config } from '../.auth0-config';
 
 interface Message {
 	nick: string;
 	message: string;
 }
 
-class App extends Component<{}, { nick: string; isLoggedIn: boolean }> {
+interface AppState {
+	auth0: Auth0Client;
+	nick: string;
+	isAuthenticated: boolean;
+	user: {};
+}
+
+class App extends Component<{}, AppState> {
 	constructor(props) {
 		super(props);
 
 		this.state = {
+			auth0: {} as Auth0Client,
+			isAuthenticated: false,
 			nick: '',
-			isLoggedIn: false,
+			user: {},
 		};
 	}
 
-	onLogin(nick: string, event: React.FormEvent) {
-		event.preventDefault();
-		this.setState({ nick, isLoggedIn: true });
+	componentDidMount = async () => {
+		const auth0 = await createAuth0Client(auth0Config);
+		this.setState({ auth0 });
+
+		const isAuthenticated = await auth0.isAuthenticated();
+
+		if (isAuthenticated) {
+			this.userIsAuthenticated();
+		} else {
+			this.userIsNotAuthenticated();
+		}
+	};
+
+	userIsAuthenticated = async () => {
+		const user = await this.state.auth0.getUser();
+		this.setState({ nick: user.nickname, isAuthenticated: true, user });
+	};
+
+	userIsNotAuthenticated = async () => {
+		const query = window.location.search;
+		if (query.includes('code=') && query.includes('state=')) {
+			await this.state.auth0.handleRedirectCallback();
+		} else {
+			this.state.auth0.loginWithRedirect({
+				redirect_uri: window.location.origin,
+			});
+		}
+	};
+
+	onLogout() {
+		this.state.auth0.logout({
+			returnTo: window.location.origin,
+		});
 	}
 
 	render() {
-		return this.state.isLoggedIn ? (
-			<MessageLog nick={this.state.nick} />
+		return this.state.isAuthenticated ? (
+			<MessageLog nick={this.state.nick} auth0={this.state.auth0} logout={() => this.onLogout()} />
 		) : (
-			<LoginScreen onLogin={this.onLogin.bind(this)} />
+			<LoadingScreen />
 		);
 	}
 }
 
-class MessageLog extends Component<{ nick: string }, { messages: Message[] }> {
+interface MessageLogProps {
+	auth0: Auth0Client;
+	nick: string;
+	logout: () => void;
+}
+
+class MessageLog extends Component<MessageLogProps, { messages: Message[] }> {
 	socket: SocketIOClient.Socket;
 
 	constructor(props) {
 		super(props);
-
 		this.state = { messages: [] };
-		this.socket = io();
-		this.socket.on('new-message', (message: Message) => this.addMessage(message));
 	}
+
+	componentDidMount = async () => {
+		const token = await this.props.auth0.getTokenSilently();
+
+		this.socket = io.connect({
+			query: `token=${token}`,
+		});
+		this.socket.on('new-message', (message: Message) => this.addMessage(message));
+	};
 
 	addMessage(message: Message) {
 		this.setState({ messages: this.state.messages.concat(message) });
@@ -57,23 +111,63 @@ class MessageLog extends Component<{ nick: string }, { messages: Message[] }> {
 		}
 
 		const input = event.target as HTMLInputElement;
-		const message: Message = {
-			nick: this.props.nick,
-			message: input.value,
-		};
+		const value = input.value;
 
-		this.socket.emit('new-message', message);
+		const handled = this.handleSlashCommand(value);
+
+		if (!handled) {
+			const message: Message = {
+				nick: this.props.nick,
+				message: value,
+			};
+
+			this.socket.emit('new-message', message);
+		}
+
 		input.value = '';
 	}
 
+	handleSlashCommand(message: string): boolean {
+		let handled = true;
+
+		if (message[0] === '/') {
+			const [command, ...params] = message.split(' ');
+
+			switch (command) {
+				case '/logout':
+					this.props.logout();
+					break;
+
+				case '/name':
+					this.socket.emit('new-name', { name: params.join(' ') });
+					break;
+
+				default:
+					this.addMessage({ nick: null, message: `${command}: unknown command` });
+					break;
+			}
+		} else {
+			handled = false;
+		}
+
+		return handled;
+	}
+
 	render() {
+		const serverMessage = {
+			fontStyle: 'italic',
+			color: 'grey',
+		};
+
 		return (
 			<div className='app'>
 				<div className='message-log'>
 					{this.state.messages.map((message, idx) => (
 						<div key={idx} className='message'>
-							<span className='message__nick'>{message.nick}</span>
-							<span className='message__message'>{message.message}</span>
+							{message.nick && <span className='message__nick'>{message.nick}</span>}
+							<span className='message__message' style={!message.nick ? serverMessage : {}}>
+								{message.message}
+							</span>
 						</div>
 					))}
 				</div>
@@ -89,36 +183,11 @@ class MessageLog extends Component<{ nick: string }, { messages: Message[] }> {
 	}
 }
 
-class LoginScreen extends Component<
-	{
-		onLogin: (nick: string, event: React.FormEvent) => void;
-	},
-	{ nick: string }
-> {
-	constructor(props) {
-		super(props);
-		this.state = { nick: '' };
-	}
-
-	setNick(event: React.ChangeEvent) {
-		this.setState({ nick: (event.target as HTMLInputElement).value });
-	}
-
+class LoadingScreen extends Component {
 	render() {
 		return (
 			<div className='login'>
-				<form className='login__form' onSubmit={event => this.props.onLogin(this.state.nick, event)}>
-					<span className='login__span'>Hola</span>
-					<input
-						type='text'
-						name='nick'
-						className='login__input'
-						value={this.state.nick}
-						onChange={event => this.setNick(event)}
-						autoFocus
-					/>
-					<span className='login__span'>👋🏻!</span>
-				</form>
+				<span className='login__span'>Cargando ... 🤔</span>
 			</div>
 		);
 	}
