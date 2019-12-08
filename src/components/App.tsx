@@ -2,7 +2,7 @@ import createAuth0Client from '@auth0/auth0-spa-js';
 import Auth0Client from '@auth0/auth0-spa-js/dist/typings/Auth0Client';
 import React, { Component } from 'react';
 import io from 'socket.io-client';
-import { auth0Config } from '../../.auth0-config';
+import { client_id, domain } from '../../.auth0-client';
 import { LoadingScreen } from './LoadingScreen';
 import { Message, MessageLog } from './MessageLog';
 
@@ -11,6 +11,7 @@ interface AppState {
 	isAuthenticated: boolean;
 	user: {};
 	messages: Message[];
+	clients?: {};
 }
 
 export class App extends Component<{}, AppState> {
@@ -25,11 +26,12 @@ export class App extends Component<{}, AppState> {
 			nick: '',
 			user: {},
 			messages: [],
+			clients: {},
 		};
 	}
 
 	componentDidMount = async () => {
-		this.auth0 = await createAuth0Client(auth0Config);
+		this.auth0 = await createAuth0Client({ domain, client_id });
 
 		const isAuthenticated = await this.auth0.isAuthenticated();
 
@@ -63,7 +65,10 @@ export class App extends Component<{}, AppState> {
 	};
 
 	addMessage(message: Message) {
-		this.setState({ messages: this.state.messages.concat(message) });
+		this.setState({
+			messages: this.state.messages.concat(message),
+			...(message.clients ? { clients: message.clients } : {}),
+		});
 	}
 
 	sendMessage(text: string) {
@@ -93,6 +98,7 @@ export class App extends Component<{}, AppState> {
 				sendMessage={this.sendMessage.bind(this)}
 				changeName={this.changeName.bind(this)}
 				messages={this.state.messages}
+				users={this.state.clients}
 			/>
 		) : (
 			<LoadingScreen />

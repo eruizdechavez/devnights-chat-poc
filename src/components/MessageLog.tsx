@@ -1,8 +1,10 @@
 import React, { Component } from 'react';
+import { UsersList } from './UsersList';
 
 export interface Message {
-	nick: string;
 	message: string;
+	nick?: string;
+	clients?: {};
 }
 
 interface MessageLogProps {
@@ -11,6 +13,7 @@ interface MessageLogProps {
 	sendMessage: (text: string) => void;
 	changeName: (name: string) => void;
 	messages: Message[];
+	users: {};
 }
 
 export class MessageLog extends Component<MessageLogProps> {
@@ -66,16 +69,19 @@ export class MessageLog extends Component<MessageLogProps> {
 		};
 
 		return (
-			<div className='app'>
-				<div className='message-log'>
-					{this.props.messages.map((message, idx) => (
-						<div key={idx} className='message'>
-							{message.nick && <span className='message__nick'>{message.nick}</span>}
-							<span className='message__message' style={!message.nick ? serverMessage : {}}>
-								{message.message}
-							</span>
-						</div>
-					))}
+			<>
+				<div className='message-wrapper'>
+					<div className='message-log'>
+						{this.props.messages.map((message, idx) => (
+							<div key={idx} className='message'>
+								{message.nick && <span className='message__nick'>{message.nick}</span>}
+								<span className='message__message' style={!message.nick ? serverMessage : {}}>
+									{message.message}
+								</span>
+							</div>
+						))}
+					</div>
+					<UsersList users={this.props.users} />
 				</div>
 				<input
 					type='text'
@@ -84,7 +90,7 @@ export class MessageLog extends Component<MessageLogProps> {
 					onKeyPress={event => this.newMessage(event)}
 					autoFocus
 				/>
-			</div>
+			</>
 		);
 	}
 }
