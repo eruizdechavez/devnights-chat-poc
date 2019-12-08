@@ -12,6 +12,7 @@ interface AppState {
 	user: {};
 	messages: Message[];
 	clients?: {};
+	pip: '';
 }
 
 export class App extends Component<{}, AppState> {
@@ -27,6 +28,7 @@ export class App extends Component<{}, AppState> {
 			user: {},
 			messages: [],
 			clients: {},
+			pip: '',
 		};
 	}
 
@@ -48,6 +50,7 @@ export class App extends Component<{}, AppState> {
 
 		this.socket = io.connect({ query: `token=${token}` });
 		this.socket.on('new-message', this.addMessage.bind(this));
+		this.socket.on('new-pip', this.showPiP.bind(this));
 		this.setState({ nick: user.nickname, isAuthenticated: true, user });
 	};
 
@@ -90,16 +93,41 @@ export class App extends Component<{}, AppState> {
 		});
 	}
 
+	sendPiP(file: File) {
+		const reader = new FileReader();
+
+		reader.readAsDataURL(file);
+
+		reader.onload = () => {
+			this.socket.emit('new-pip', { pip: reader.result });
+		};
+
+		reader.onerror = error => {
+			console.log('Error: ', error);
+		};
+	}
+
+	showPiP({ pip }: any) {
+		this.setState({ pip });
+		setTimeout(() => {
+			this.setState({ pip: '' });
+		}, 5000);
+	}
+
 	render() {
 		return this.state.isAuthenticated ? (
-			<MessageLog
-				logout={this.logout.bind(this)}
-				addMessage={this.addMessage.bind(this)}
-				sendMessage={this.sendMessage.bind(this)}
-				changeName={this.changeName.bind(this)}
-				messages={this.state.messages}
-				users={this.state.clients}
-			/>
+			<>
+				<MessageLog
+					logout={this.logout.bind(this)}
+					addMessage={this.addMessage.bind(this)}
+					sendMessage={this.sendMessage.bind(this)}
+					changeName={this.changeName.bind(this)}
+					sendPiP={this.sendPiP.bind(this)}
+					messages={this.state.messages}
+					users={this.state.clients}
+				/>
+				{this.state.pip && <img className='pip' src={this.state.pip} />}
+			</>
 		) : (
 			<LoadingScreen />
 		);

@@ -12,6 +12,7 @@ interface MessageLogProps {
 	addMessage: (message: Message) => void;
 	sendMessage: (text: string) => void;
 	changeName: (name: string) => void;
+	sendPiP: (file: File) => void;
 	messages: Message[];
 	users: {};
 }
@@ -38,6 +39,22 @@ export class MessageLog extends Component<MessageLogProps> {
 		input.value = '';
 	}
 
+	startPiP() {
+		document.querySelector('#pip').dispatchEvent(new MouseEvent('click'));
+	}
+
+	sendPiP(event: React.ChangeEvent) {
+		const input = event.target as HTMLInputElement;
+		const files: FileList = input.files;
+
+		if (files.length === 0) {
+			return;
+		}
+
+		this.props.sendPiP(files.item(0));
+		input.value = '';
+	}
+
 	handleSlashCommand(message: string): boolean {
 		let handled = message[0] === '/';
 
@@ -51,6 +68,10 @@ export class MessageLog extends Component<MessageLogProps> {
 
 				case '/name':
 					this.props.changeName(params.join(' '));
+					break;
+
+				case '/pip':
+					this.startPiP();
 					break;
 
 				default:
@@ -89,6 +110,18 @@ export class MessageLog extends Component<MessageLogProps> {
 					placeholder='Escribe tu mensaje y presiona Enter'
 					onKeyPress={event => this.newMessage(event)}
 					autoFocus
+					autoCapitalize='sentences'
+					autoCorrect='on'
+					spellCheck={true}
+				/>
+				<input
+					type='file'
+					name='pip'
+					id='pip'
+					style={{ display: 'none' }}
+					onChange={event => this.sendPiP(event)}
+					multiple={false}
+					accept='image/*'
 				/>
 			</>
 		);

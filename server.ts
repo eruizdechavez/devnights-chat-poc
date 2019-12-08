@@ -43,6 +43,10 @@ io.on('connection', async socket => {
 		io.emit('new-message', { nick: clients[socket.id].name, message: msg.message });
 	});
 
+	socket.on('new-pip', msg => {
+		io.emit('new-pip', { pip: msg.pip });
+	});
+
 	socket.on('new-name', async msg => {
 		try {
 			await auth0.updateUser({ id: clients[socket.id].id }, { name: msg.name });
