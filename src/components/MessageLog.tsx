@@ -17,7 +17,12 @@ interface MessageLogProps {
 	users: {};
 }
 
-export class MessageLog extends Component<MessageLogProps> {
+export class MessageLog extends Component<MessageLogProps, { history: string[] }> {
+	constructor(props) {
+		super(props);
+		this.state = { history: [] };
+	}
+
 	componentDidUpdate() {
 		const messageLog = document.querySelector('.message-log');
 		messageLog.scrollTo(0, messageLog.scrollHeight);
@@ -27,16 +32,45 @@ export class MessageLog extends Component<MessageLogProps> {
 		if (event.key !== 'Enter') {
 			return;
 		}
-
 		const input = event.target as HTMLInputElement;
 		const value = input.value;
+
+		if (value === '') {
+			return;
+		}
+
 		const handled = this.handleSlashCommand(value);
+
+		this.setState({ history: this.state.history.concat(value) });
 
 		if (!handled) {
 			this.props.sendMessage(value);
 		}
 
 		input.value = '';
+	}
+
+	viewMessageHistory(event: React.KeyboardEvent) {
+		if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') {
+			return;
+		}
+
+		const input = event.target as HTMLInputElement;
+		const text = input.value;
+		const delta = event.key === 'ArrowUp' ? -1 : 1;
+		let idx = this.state.history.indexOf(text);
+
+		if (idx === -1) {
+			idx = delta === -1 ? this.state.history.length - 1 : 0;
+		} else if (idx + delta < 0) {
+			idx = this.state.history.length - 1;
+		} else if (idx + delta >= this.state.history.length) {
+			idx = 0;
+		} else {
+			idx += delta;
+		}
+
+		input.value = this.state.history[idx];
 	}
 
 	startPiP() {
@@ -109,6 +143,7 @@ export class MessageLog extends Component<MessageLogProps> {
 					className='message-input'
 					placeholder='Escribe tu mensaje y presiona Enter'
 					onKeyPress={event => this.newMessage(event)}
+					onKeyDown={event => this.viewMessageHistory(event)}
 					autoFocus
 					autoCapitalize='sentences'
 					autoCorrect='on'
