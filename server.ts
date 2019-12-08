@@ -43,8 +43,14 @@ io.on('connection', async socket => {
 		io.emit('new-message', { nick: clients[socket.id].name, message: msg.message });
 	});
 
-	socket.on('new-pip', msg => {
-		io.emit('new-pip', { pip: msg.pip });
+	socket.on('new-pip', async msg => {
+		const permissions = await auth0.getUserPermissions({ id: clients[socket.id].id });
+		const found = permissions.find(item => item.permission_name === 'write:pip');
+		if (found) {
+			io.emit('new-pip', { pip: msg.pip });
+		} else {
+			socket.emit('new-message', { message: `No tienes permisos suficientes para compartir PiP.` });
+		}
 	});
 
 	socket.on('new-name', async msg => {
