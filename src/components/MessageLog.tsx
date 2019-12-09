@@ -120,7 +120,6 @@ export class MessageLog extends Component<MessageLogProps, { history: string[] }
 	render() {
 		const serverMessage = {
 			fontStyle: 'italic',
-			color: 'grey',
 		};
 
 		return (

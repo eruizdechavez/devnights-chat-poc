@@ -4,12 +4,43 @@
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<meta http-equiv="X-UA-Compatible" content="ie=edge" />
-		<title>Chat Demo</title>
-		<link href="https://fonts.googleapis.com/css?family=Fira+Code:300,400,500,600,700&display=swap" rel="stylesheet" />
+		<title>DevNights - En vivo!</title>
+		<link href="//fonts.googleapis.com/css?family=Fira+Code:300,400,500,600,700&display=swap" rel="stylesheet" />
 		<link rel="stylesheet" href="index.scss" />
 	</head>
 	<body>
-		<div id="root"></div>
+		<div id="radio" class="radio"></div>
+		<script src="//code.jquery.com/jquery-3.2.1.min.js"></script>
+		<script src="//live.devnights.mx/js/nativeflashradiov4.js"></script>
+		<script>
+			$('.radio').flashradio({
+				token: 'bWp3Zi9lZndvamhpdXQvbnkB',
+				userinterface: 'small',
+				backgroundcolor: '#2F3236',
+				themecolor: '#536e96',
+				themefontcolor: '#ffffff',
+				startvolume: '100',
+				radioname: 'DevNights Podcast',
+				scroll: 'auto',
+				autoplay: 'false',
+				useanalyzer: 'real',
+				analyzertype: '4',
+				usecover: 'true',
+				usestreamcorsproxy: 'false',
+				affiliatetoken: '1000lIPN',
+				debug: 'false',
+				radiocover: 'https://devnights.mx/wp-content/uploads/2018/08/2BzDnj1g_400x400.png',
+				songfontname: 'Fira Code',
+				titlefontname: 'Fira Code',
+				mountpoint: '/stream',
+				streamid: '1',
+				streampath: '/live',
+				streamtype: 'icecast2',
+				streamurl: 'http://192.240.102.133:11466',
+				songinformationinterval: '5000',
+			});
+		</script>
+		<div id="chat" class="chat"></div>
 		<script src="./index.tsx"></script>
 	</body>
 </html>
