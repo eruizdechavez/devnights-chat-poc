@@ -22,9 +22,9 @@ npm start
 - [x] Cambiar nick ✏️
 - [x] Log out 🚪
 - [x] Deploy de prueba 🚢
-- [ ] Estilos 🎨
+- [x] Estilos 🎨
+- [x] Broadcast de imágenes en modo PiP 🖼
 - [ ] Cargar historial 🗄
 - [ ] Exportar historial 📦
 - [ ] Notificaciones 📫
-- [ ] Broadcast de imágenes en modo PiP 🖼
 - [ ] Hot reload `server.js` 🔥
