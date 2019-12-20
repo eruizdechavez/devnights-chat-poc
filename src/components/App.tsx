@@ -49,8 +49,9 @@ export class App extends Component<{}, AppState> {
 		const token = await this.auth0.getTokenSilently();
 
 		this.socket = io.connect({ query: `token=${token}` });
-		this.socket.on('new-message', this.addMessage.bind(this));
-		this.socket.on('new-pip', this.showPiP.bind(this));
+		this.socket.on('message', this.addMessage.bind(this));
+		this.socket.on('clients', this.updateClients.bind(this));
+		this.socket.on('pip', this.showPiP.bind(this));
 		this.setState({ nick: user.nickname, isAuthenticated: true, user });
 	};
 
@@ -70,7 +71,16 @@ export class App extends Component<{}, AppState> {
 	addMessage(message: Message) {
 		this.setState({
 			messages: this.state.messages.concat(message),
-			...(message.clients ? { clients: message.clients } : {}),
+		});
+
+		if (message.clients) {
+			this.updateClients(message);
+		}
+	}
+
+	updateClients(message: Message) {
+		this.setState({
+			clients: message.clients,
 		});
 	}
 
@@ -80,11 +90,11 @@ export class App extends Component<{}, AppState> {
 			message: text,
 		};
 
-		this.socket.emit('new-message', message);
+		this.socket.emit('message', message);
 	}
 
 	changeName(name: string) {
-		this.socket.emit('new-name', { name });
+		this.socket.emit('name', { name });
 	}
 
 	logout() {
@@ -99,7 +109,7 @@ export class App extends Component<{}, AppState> {
 		reader.readAsDataURL(file);
 
 		reader.onload = () => {
-			this.socket.emit('new-pip', { pip: reader.result });
+			this.socket.emit('pip', { pip: reader.result });
 		};
 
 		reader.onerror = error => {

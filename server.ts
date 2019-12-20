@@ -37,34 +37,34 @@ io.on('connection', async socket => {
 
 	clients[socket.id] = { name, id: sub };
 
-	io.emit('new-message', { message: `${clients[socket.id].name} se ha conectado`, clients });
+	io.emit('clients', { clients });
 
-	socket.on('new-message', msg => {
-		io.emit('new-message', { nick: clients[socket.id].name, message: msg.message });
+	socket.on('message', msg => {
+		io.emit('message', { nick: clients[socket.id].name, message: msg.message });
 	});
 
-	socket.on('new-pip', async msg => {
+	socket.on('pip', async msg => {
 		const permissions = await auth0.getUserPermissions({ id: clients[socket.id].id });
 		const found = permissions.find(item => item.permission_name === 'write:pip');
 		if (found) {
-			io.emit('new-pip', { pip: msg.pip });
+			io.emit('pip', { pip: msg.pip });
 		} else {
-			socket.emit('new-message', { message: `No tienes permisos suficientes para compartir PiP.` });
+			socket.emit('message', { message: `No tienes permisos suficientes para compartir PiP.` });
 		}
 	});
 
-	socket.on('new-name', async msg => {
+	socket.on('name', async msg => {
 		try {
 			await auth0.updateUser({ id: clients[socket.id].id }, { name: msg.name });
 		} catch (error) {
-			socket.emit('new-message', { message: `Ocurrió un error al cambiar el nombre, intenta mas tarde.` });
+			socket.emit('message', { message: `Ocurrió un error al cambiar el nombre, intenta mas tarde.` });
 			return;
 		}
 
 		const oldName = clients[socket.id].name;
 		clients[socket.id].name = msg.name;
 
-		io.emit('new-message', { message: `${oldName} es ahora ${msg.name}`, clients });
+		io.emit('message', { message: `${oldName} es ahora ${msg.name}`, clients });
 	});
 
 	socket.on('disconnect', () => {
@@ -72,7 +72,7 @@ io.on('connection', async socket => {
 		const { [socket.id]: disconnected, ...connectedClients } = clients;
 		clients = connectedClients;
 
-		io.emit('new-message', { message: `${nick} se ha desconectado`, clients });
+		io.emit('clients', { clients });
 	});
 });
 
